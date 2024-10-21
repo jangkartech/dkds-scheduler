@@ -1,7 +1,8 @@
 import {getOrders} from "./services/dkds.service.js";
 
 const main  = async () => {
-    await  getOrders();
+    const orders = await  getOrders();
+    console.log(orders);
 }
 
 main().then();

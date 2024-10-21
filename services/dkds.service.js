@@ -1,8 +1,9 @@
 import fetch from 'node-fetch';
-import { URLSearchParams } from 'url';
-import { promises as fs } from 'fs';
+import {URLSearchParams} from 'url';
+import {promises as fs} from 'fs';
 import path from 'path';
-import { config } from 'dotenv';
+import {config} from 'dotenv';
+
 config(); // Load environment variables from .env file
 
 // Define an async function to perform the POST request
@@ -58,11 +59,9 @@ export const getOrders = async () => {
         const contentType = response.headers.get('content-type');
 
         if (contentType && contentType.includes('application/json')) {
-            const data = await response.json();
-            console.log(data);
+            return await response.json()
         } else {
-            const text = await response.text(); // Fallback to plain text or HTML
-            console.log('Non-JSON response:', text);
+            return  await response.text();
         }
     } catch (error) {
         console.error('Error fetching orders:', error);
