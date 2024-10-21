@@ -1,0 +1,55 @@
+import fetch from 'node-fetch';
+import { URLSearchParams } from 'url';
+import credentials from 'credential.json' assert { type: 'json' };
+
+// Define an async function to perform the POST request
+export const getOrders = async () => {
+    const csrf = credentials.DKDS_CSRF
+    const cookie = credentials.DKDS_COOKIE
+    const baseUrl = process.env.DKDS_BASE_URL;
+    try {
+        // Create URLSearchParams for the form data
+        const formData = new URLSearchParams();
+        formData.append('_csrf', csrf);
+        formData.append('RealOrder[distributor_code]', '70006022');
+        formData.append('RealOrder[start_sales]', '');
+        formData.append('RealOrder[end_sales]', '');
+        formData.append('RealOrder[start_outlet]', '');
+        formData.append('RealOrder[end_outlet]', '');
+        formData.append('RealOrder[start_ro]', '');
+        formData.append('RealOrder[end_ro]', '');
+        formData.append('RealOrder[start_date]', '');
+        formData.append('RealOrder[end_date]', '');
+
+        // Perform the POST request
+        const response = await fetch(baseUrl+'/dkds/web/index.php?r=sfa%2Freal-order%2Flist-rorder', {
+            method: 'POST',
+            headers: {
+                'Cookie': cookie,
+                'Accept': 'text/plain, */*; q=0.01',
+                'Accept-Encoding': 'gzip, deflate',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Connection': 'keep-alive',
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'Host': '192.168.1.253',
+                'Origin': baseUrl,
+                'Referer': baseUrl+'/dkds/web/index.php?r=sfa%2Freal-order%2Fmultiple',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        });
+
+        const contentType = response.headers.get('content-type');
+
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            console.log(data);
+        } else {
+            const text = await response.text(); // Fallback to plain text or HTML
+            console.log('Non-JSON response:', text);
+        }
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+    }
+};

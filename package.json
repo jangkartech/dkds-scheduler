@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jangkartech/dkds-scheduler.git"
@@ -15,5 +16,10 @@
   "bugs": {
     "url": "https://github.com/jangkartech/dkds-scheduler/issues"
   },
-  "homepage": "https://github.com/jangkartech/dkds-scheduler#readme"
+  "homepage": "https://github.com/jangkartech/dkds-scheduler#readme",
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7"
+  }
 }
