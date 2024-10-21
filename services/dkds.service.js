@@ -2,6 +2,8 @@ import fetch from 'node-fetch';
 import { URLSearchParams } from 'url';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { config } from 'dotenv';
+config(); // Load environment variables from .env file
 
 // Define an async function to perform the POST request
 export const getOrders = async () => {
