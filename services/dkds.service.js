@@ -61,7 +61,8 @@ export const getOrders = async () => {
         if (contentType && contentType.includes('application/json')) {
             return await response.json()
         } else {
-            return  await response.text();
+           const text =  await response.text();
+           return JSON.parse(text);
         }
     } catch (error) {
         console.error('Error fetching orders:', error);
