@@ -15,6 +15,12 @@ export const getOrders = async () => {
         const cookie = credentials.DKDS_COOKIE;
         const baseUrl = process.env.DKDS_BASE_URL;
 
+        console.log({
+            'csrf': csrf,
+            'cookie': cookie,
+            'baseUrl': baseUrl
+        })
+
         // Create URLSearchParams for the form data
         const formData = new URLSearchParams();
         formData.append('_csrf', csrf);
