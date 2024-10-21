@@ -1,13 +1,20 @@
 import fetch from 'node-fetch';
 import { URLSearchParams } from 'url';
-import credentials from 'credential.json' assert { type: 'json' };
+import { promises as fs } from 'fs';
+import path from 'path';
 
 // Define an async function to perform the POST request
 export const getOrders = async () => {
-    const csrf = credentials.DKDS_CSRF
-    const cookie = credentials.DKDS_COOKIE
-    const baseUrl = process.env.DKDS_BASE_URL;
     try {
+        // Read and parse the credentials JSON file
+        const credentialsPath = path.resolve('./credential.json');
+        const credentialsData = await fs.readFile(credentialsPath, 'utf-8');
+        const credentials = JSON.parse(credentialsData);
+
+        const csrf = credentials.DKDS_CSRF;
+        const cookie = credentials.DKDS_COOKIE;
+        const baseUrl = process.env.DKDS_BASE_URL;
+
         // Create URLSearchParams for the form data
         const formData = new URLSearchParams();
         formData.append('_csrf', csrf);
@@ -22,7 +29,7 @@ export const getOrders = async () => {
         formData.append('RealOrder[end_date]', '');
 
         // Perform the POST request
-        const response = await fetch(baseUrl+'/dkds/web/index.php?r=sfa%2Freal-order%2Flist-rorder', {
+        const response = await fetch(baseUrl + '/dkds/web/index.php?r=sfa%2Freal-order%2Flist-rorder', {
             method: 'POST',
             headers: {
                 'Cookie': cookie,
@@ -33,7 +40,7 @@ export const getOrders = async () => {
                 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 'Host': '192.168.1.253',
                 'Origin': baseUrl,
-                'Referer': baseUrl+'/dkds/web/index.php?r=sfa%2Freal-order%2Fmultiple',
+                'Referer': baseUrl + '/dkds/web/index.php?r=sfa%2Freal-order%2Fmultiple',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
                 'X-Requested-With': 'XMLHttpRequest'
             },
