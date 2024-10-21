@@ -87,7 +87,7 @@ export const getDetailOrder = async (orderId) => {
         })
         // Perform the POST request
         const response = await fetch(baseUrl + '/dkds/web/index.php?r=sfa%2Freal-order%2Fview&id='+orderId+'&distributor_code=70006022', {
-            method: 'POST',
+            method: 'GET',
             headers: {
                 'Cookie': cookie,
                 'Accept': 'text/plain, */*; q=0.01',
@@ -108,8 +108,7 @@ export const getDetailOrder = async (orderId) => {
         if (contentType && contentType.includes('application/json')) {
             return await response.json()
         } else {
-           const text =  await response.text();
-           return JSON.parse(text);
+            return await response.text()
         }
     } catch (error) {
         console.error('Error fetching orders:', error);
