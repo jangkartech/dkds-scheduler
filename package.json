@@ -18,8 +18,8 @@
   },
   "homepage": "https://github.com/jangkartech/dkds-scheduler#readme",
   "dependencies": {
-    "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
+    "jsdom": "^25.0.1",
     "node-fetch": "^2.7.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7"
