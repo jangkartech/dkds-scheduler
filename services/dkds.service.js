@@ -30,6 +30,8 @@ export const refetchCookies = async () => {
         page.waitForNavigation({ waitUntil: 'networkidle2' })  // Wait for the next page to load
     ]);
 
+    // Extract the CSRF token from the dashboard
+    const csrfToken = await page.$eval('meta[name="csrf-token"]', el => el.content);
     // Read all cookies after login, including HttpOnly cookies
     const cookies = await page.cookies();
 
@@ -44,6 +46,7 @@ export const refetchCookies = async () => {
 
     // Update the cookies key
     existingData["COOKIES"] = cookies;
+    existingData["DKDS_CSRF"] = csrfToken;
 
     // Write updated data back to credential.json
     await fs.writeFile('credential.json', JSON.stringify(existingData, null, 2));
@@ -63,7 +66,9 @@ export const getOrders = async () => {
         const credentials = JSON.parse(credentialsData);
 
         const csrf = credentials.DKDS_CSRF;
-        const cookie = credentials.DKDS_COOKIE;
+        const csrfCookie = credentials.COOKIES[0].value;
+        const phpsessid = credentials.COOKIES[1].value;
+        const cookie = "PHPSESSID="+phpsessid+"; _csrf="+csrfCookie;
         const baseUrl = process.env.DKDS_BASE_URL;
 
         console.log({
