@@ -6,7 +6,7 @@ import {config} from 'dotenv';
 import {JSDOM} from "jsdom";
 import puppeteer from 'puppeteer';
 
-config(); // Load environment variables from .env file
+config();
 
 export const refetchCookies = async () => {
     const baseUrl = process.env.DKDS_BASE_URL;
@@ -125,7 +125,9 @@ export const getDetailOrder = async (orderId) => {
         const credentials = JSON.parse(credentialsData);
 
         const csrf = credentials.DKDS_CSRF;
-        const cookie = credentials.DKDS_COOKIE;
+        const csrfCookie = credentials.COOKIES[0].value;
+        const phpsessid = credentials.COOKIES[1].value;
+        const cookie = "PHPSESSID="+phpsessid+"; _csrf="+csrfCookie;
         const baseUrl = process.env.DKDS_BASE_URL;
 
         console.log({
