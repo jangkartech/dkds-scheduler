@@ -106,15 +106,13 @@ export const createTwinOrder = async (orderPayload = {
     });
 
     let order = {};
+    let items = [];
     const orderContentType = orderResponse.headers.get('content-type');
     if (orderContentType && orderContentType.includes('application/json')) {
         order = await orderResponse.json();
     } else {
         order = JSON.parse(await orderResponse.text());
     }
-
-    const createdItems = [];
-
     // Submit each item in orderItems
     for (const item of orderItems) {
         const itemResponse = await fetch(`${baseUrl}/detail_penjualan`, {
@@ -129,11 +127,12 @@ export const createTwinOrder = async (orderPayload = {
         const itemContentType = itemResponse.headers.get('content-type');
         if (itemContentType && itemContentType.includes('application/json')) {
             const itemData = await itemResponse.json();
-            createdItems.push(itemData.data);
+            items = itemData.data;
         } else {
-            createdItems.push(JSON.parse(await itemResponse.text()).data);
+            const itemData = JSON.parse(await itemResponse.text())
+            items = itemData.data;
         }
     }
 
-    return { order, createdItems };
+    return { order, items };
 };
