@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
-import path from "path";
+import path from 'path';
 
 // Refetch and update TWIN API token
 export const refetchTwinToken = async () => {
@@ -41,7 +41,7 @@ export const refetchTwinToken = async () => {
 
     console.log('Token updated in credential.json');
     return responseData;
-}
+};
 
 // Fetch data with token-based authentication
 const fetchData = async (endpoint) => {
@@ -106,7 +106,8 @@ export const createTwinOrder = async (orderPayload = {
     });
 
     let order = {};
-    if (orderResponse.headers.get('content-type')?.includes('application/json')) {
+    const orderContentType = orderResponse.headers.get('content-type');
+    if (orderContentType && orderContentType.includes('application/json')) {
         order = await orderResponse.json();
     } else {
         order = JSON.parse(await orderResponse.text());
@@ -125,7 +126,8 @@ export const createTwinOrder = async (orderPayload = {
             body: JSON.stringify({ id_penjualan: order.id, ...item }),
         });
 
-        if (itemResponse.headers.get('content-type')?.includes('application/json')) {
+        const itemContentType = itemResponse.headers.get('content-type');
+        if (itemContentType && itemContentType.includes('application/json')) {
             const itemData = await itemResponse.json();
             createdItems.push(itemData.data);
         } else {
