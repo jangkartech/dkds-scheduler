@@ -43,7 +43,7 @@ const main = async () => {
                 salesmanName: salesman[1],
                 customerCode: customer[0],
                 customerName: customerNameAndAddress[0].trim(),
-                customerAddress: customerNameAndAddress[1]?.trim() || '',
+                customerAddress: customerNameAndAddress[1].trim() || '',
                 totalInv: cells[6].textContent.trim(),
                 description: cells[7].textContent.trim(),
                 postedBy: cells[8].textContent.trim(),
