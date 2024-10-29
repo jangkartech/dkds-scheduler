@@ -271,8 +271,7 @@ export const getDKDSSaleOrders = async (page = 1) => {
         if (contentType && contentType.includes('application/json')) {
             return await response.json()
         } else {
-            const text = await response.text();
-            return JSON.parse(text);
+            return  await response.text();
         }
     } catch (error) {
         console.error('Error fetching orders:', error);
