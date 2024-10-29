@@ -231,7 +231,7 @@ export const getDetailOrder = async (orderId) => {
     }
 }
 
-export const getDKDSSaleOrders = async () => {
+export const getDKDSSaleOrders = async (page = 1) => {
     try {
         // Read and parse the credentials JSON file
         const credentialsPath = path.resolve('./credential.json');
@@ -251,7 +251,7 @@ export const getDKDSSaleOrders = async () => {
         })
 
         // Perform the POST request
-        const response = await fetch(baseUrl + '/dkds/web/index.php?r=transaksi/sales-order/index&TransaksiSorderSearch[id]=&TransaksiSorderSearch[no_rorder]=&TransaksiSorderSearch[date]=&TransaksiSorderSearch[sales_id]=&TransaksiSorderSearch[outlet_code]=&TransaksiSorderSearch[total_inv]=&TransaksiSorderSearch[keterangan]=&TransaksiSorderSearch[user_id]=&TransaksiSorderSearch[post]=1&TransaksiSorderSearch[block_order]=&page=1', {
+        const response = await fetch(baseUrl + '/dkds/web/index.php?r=transaksi/sales-order/index&TransaksiSorderSearch[id]=&TransaksiSorderSearch[no_rorder]=&TransaksiSorderSearch[date]=&TransaksiSorderSearch[sales_id]=&TransaksiSorderSearch[outlet_code]=&TransaksiSorderSearch[total_inv]=&TransaksiSorderSearch[keterangan]=&TransaksiSorderSearch[user_id]=&TransaksiSorderSearch[post]=1&TransaksiSorderSearch[block_order]=&page='+page, {
             method: 'GET',
             headers: {
                 'Cookie': cookie,
