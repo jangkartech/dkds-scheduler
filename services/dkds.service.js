@@ -339,7 +339,7 @@ export const getAllDKDSSaleOrders = async () => {
     let hasMorePages = true;
     while (hasMorePages) {
         const {scrapedData, pagination} = await fetchAndScrapeData(currentPage);
-        console.log({data: scrapedData, meta: {pagination}});
+        console.log(pagination);
 
         allData = allData.concat(scrapedData);
 

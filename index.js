@@ -27,8 +27,7 @@ const main = async () => {
     await refetchCookies();
     const orders = await getAllDKDSSaleOrders();
     // Now orders contains data from all pages
-    console.log(orders);
-    const order = await getDKDSSaleOrdersById(orders[0].id);
+    const order = await getDKDSSaleOrdersById(orders[0].salesOrder);
     console.log(order);
 };
 
