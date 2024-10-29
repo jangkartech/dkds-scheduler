@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import { promises as fs } from 'fs';
+import {promises as fs} from 'fs';
 import path from 'path';
 
 // Refetch and update TWIN API token
@@ -8,7 +8,7 @@ export const refetchTwinToken = async () => {
 
     const response = await fetch(`${baseUrl}/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
             email: process.env.TWIN_USERNAME,
             password: process.env.TWIN_PASSWORD,
@@ -73,11 +73,13 @@ const fetchData = async (endpoint) => {
 export const getTwinOrder = async (orderId = '13426134') => {
     const orderDetails = await fetchData(`/penjualan/${orderId}`);
     const orderItems = await fetchData(`/detail_penjualan/${orderId}/detail`);
-    return { orderDetails, orderItems };
+    return {orderDetails, orderItems};
 };
 
 // Create new order with items
 export const createTwinOrder = async (orderPayload = {
+    id : "",
+    status : "",
     id_toko: "449",
     id_gudang: "1",
     po_manual: "",
@@ -86,14 +88,22 @@ export const createTwinOrder = async (orderPayload = {
     tipe_harga: "rbp",
     id_salesman: "40",
     keterangan: "",
-    items: [{ id_stock: "8", qty: "1", qty_pcs: 0 }]
+    items: [{
+        id_barang: "8",
+        qty: "1",
+        qty_pcs: 0,
+        disc_persen: 0,
+        disc_rupiah: 0,
+        id_promo: 0,
+        kode_promo: "promo dkds"
+    }],
 }) => {
     const baseUrl = process.env.TWIN_BASE_URL;
     const credentialsPath = path.resolve('./credential.json');
     const credentials = JSON.parse(await fs.readFile(credentialsPath, 'utf-8'));
     const token = credentials.TWIN_TOKEN;
 
-    const { items: orderItems, ...orderData } = orderPayload;
+    const {items: orderItems, ...orderData} = orderPayload;
 
     // Submit order data
     const orderResponse = await fetch(`${baseUrl}/penjualan/web`, {
@@ -121,7 +131,7 @@ export const createTwinOrder = async (orderPayload = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ id_penjualan: order.id, ...item }),
+            body: JSON.stringify({id_penjualan: order.id, ...item}),
         });
 
         const itemContentType = itemResponse.headers.get('content-type');
@@ -134,5 +144,5 @@ export const createTwinOrder = async (orderPayload = {
         }
     }
 
-    return { order, items };
+    return {order, items};
 };
