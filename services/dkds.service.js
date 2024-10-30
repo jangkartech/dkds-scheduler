@@ -291,21 +291,20 @@ export const getAllDKDSSaleOrders = async () => {
             const salesman = cells[4].textContent.trim().split(' - ');
             const customer = cells[5].textContent.trim().split(' - ');
             const customerNameAndAddress = customer[1].split('Add: ');
-
             return {
                 rowNumber: cells[0].textContent.trim(),
-                salesOrder: cells[1].textContent.trim(),
+                noSalesOrder: cells[1].textContent.trim(),
                 noRealOrder: cells[2].textContent.trim(),
-                date: cells[3].textContent.trim(),
+                oderDate: cells[3].textContent.trim(),
                 salesmanCode: salesman[0],
                 salesmanName: salesman[1],
                 customerCode: customer[0],
                 customerName: customerNameAndAddress[0].trim(),
                 customerAddress: customerNameAndAddress[1].trim() || '',
-                totalInv: cells[6].textContent.trim(),
+                totalInvoice: parseFloat(cells[6].textContent.trim().replace(/[,.-]/g, '')) || 0, // Convert totalInvoice to float
                 description: cells[7].textContent.trim(),
-                postedBy: cells[8].textContent.trim(),
-                postStatus: cells[9].textContent.trim(),
+                createdBy: cells[8].textContent.trim(),
+                status: cells[9].textContent.trim(),
                 blockOrder: cells[10].textContent.trim()
             };
         });
@@ -433,7 +432,7 @@ export const getDKDSSaleOrderById = async (id) => {
             const warehouseCode = warehouse[0].trim();
             const warehouseName = warehouse[1].trim();
             const data = {
-                noRealOrder : getTextContent(
+                noRealOrder: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(1) ' +
@@ -441,7 +440,7 @@ export const getDKDSSaleOrderById = async (id) => {
                     'tr:nth-child(1) ' +
                     'th'
                 ),
-                noSalesOrder : getTextContent(
+                noSalesOrder: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(1) ' +
@@ -451,7 +450,7 @@ export const getDKDSSaleOrderById = async (id) => {
                 ),
                 salesmanCode,
                 salesmanName,
-                oderType : getTextContent(
+                oderType: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(1) ' +
@@ -459,7 +458,7 @@ export const getDKDSSaleOrderById = async (id) => {
                     'tr:nth-child(4) ' +
                     'th'
                 ),
-                oderDate : getTextContent(
+                oderDate: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(1) ' +
@@ -467,7 +466,7 @@ export const getDKDSSaleOrderById = async (id) => {
                     'tr:nth-child(5) ' +
                     'th'
                 ),
-                createdBy : getTextContent(
+                createdBy: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(1) ' +
@@ -475,7 +474,7 @@ export const getDKDSSaleOrderById = async (id) => {
                     'tr:nth-child(7) ' +
                     'th'
                 ),
-                noPo : getTextContent(
+                noPo: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(2) ' +
@@ -483,7 +482,7 @@ export const getDKDSSaleOrderById = async (id) => {
                     'tr:nth-child(1) ' +
                     'th'
                 ),
-                poDate : getTextContent(
+                poDate: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(2) ' +
@@ -494,7 +493,7 @@ export const getDKDSSaleOrderById = async (id) => {
                 customerCode,
                 customerName,
                 customerAddress,
-                paymentType : getTextContent(
+                paymentType: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(2) ' +
@@ -503,7 +502,7 @@ export const getDKDSSaleOrderById = async (id) => {
                     'th ' +
                     'strong'
                 ),
-                dueDate : getTextContent(
+                dueDate: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(2) ' +
@@ -511,7 +510,7 @@ export const getDKDSSaleOrderById = async (id) => {
                     'tr:nth-child(4) ' +
                     'th '
                 ).split('/')[1].trim(),
-                status : getTextContent(
+                status: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(3) ' +
@@ -521,7 +520,7 @@ export const getDKDSSaleOrderById = async (id) => {
                 ),
                 warehouseCode,
                 warehouseName,
-                description : getTextContent(
+                description: getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(3) ' +
@@ -529,79 +528,79 @@ export const getDKDSSaleOrderById = async (id) => {
                     'tr:nth-child(3) ' +
                     'th'
                 ),
-                printCount : getTextContent(
+                printCount: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(1) ' +
                     '.col-sm-4:nth-of-type(3) ' +
                     '.table-view-rorder ' +
                     'tr:nth-child(4) ' +
                     'th span'
-                ),
-                taxBase : getTextContent(
+                ).replace(/[,.-]/g, '')) || 0, // Convert printCount to float
+                taxBase: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(2) ' +
                     '.col-sm-8:nth-of-type(1) ' +
                     '.table-promo-input ' +
                     'tr:nth-child(1) ' +
                     'td:nth-child(7)'
-                ),
-                discountValue : getTextContent(
+                ).replace(/[,.-]/g, '')) || 0, // Convert taxBase to float
+                discountValue: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(2) ' +
                     '.col-sm-8:nth-of-type(1) ' +
                     '.table-promo-input ' +
                     'tr:nth-child(1) ' +
                     'td:nth-child(3)'
-                ),
-                discountPercentage : getTextContent(
+                ).replace(/[,.-]/g, '')) || 0, // Convert discountValue to float
+                discountPercentage: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(2) ' +
                     '.col-sm-8:nth-of-type(1) ' +
                     '.table-promo-input ' +
                     'tr:nth-child(2) ' +
                     'td:nth-child(3)'
-                ),
-                amount : getTextContent(
+                ).replace(/[,.-]/g, '')) || 0, // Convert discountPercentage to float
+                amount: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(2) ' +
                     '.col-sm-8:nth-of-type(1) ' +
                     '.table-promo-input ' +
                     'tr:nth-child(1) ' +
                     'td:nth-child(11)'
-                ),
-                taxValue : getTextContent(
+                ).replace(/[,.-]/g, '')) || 0, // Convert amount to float
+                taxValue: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(2) ' +
                     '.col-sm-8:nth-of-type(1) ' +
                     '.table-promo-input ' +
                     'tr:nth-child(2) ' +
                     'td:nth-child(7)'
-                ),
-                points : getTextContent(
+                ).replace(/[,.-]/g, '')) || 0, // Convert taxValue to float
+                points: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(2) ' +
                     '.col-sm-8:nth-of-type(1) ' +
                     '.table-promo-input ' +
                     'tr:nth-child(3) ' +
                     'td:nth-child(3)'
-                ),
-                adjustmentPrice : getTextContent(
+                ).replace(/[,.-]/g, '')) || 0, // Convert points to float
+                adjustmentPrice: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(2) ' +
                     '.col-sm-8:nth-of-type(1) ' +
                     '.table-promo-input ' +
                     'tr:nth-child(3) ' +
                     'td:nth-child(7)'
-                ),
-                totalInvoice : getTextContent(
+                ).replace(/[,.-]/g, '')) || 0, // Convert adjustmentPrice to float
+                totalInvoice: parseFloat(getTextContent(
                     '.rorder-view ' +
                     '.row:nth-of-type(2) ' +
                     '.col-sm-8:nth-of-type(1) ' +
                     '.table-promo-input ' +
                     'tr:nth-child(3) ' +
                     'td:nth-child(11)'
-                ),
-            }
+                ).replace(/[,.-]/g, '')) || 0 // Convert totalInvoice to float
+            };
             return data;
         }
     } catch (error) {
@@ -649,7 +648,8 @@ export const getDKDSSaleOrderItemsById = async (id, customerCode) => {
                 'Origin': baseUrl,
                 'Referer': baseUrl + '/dkds/web/index.php?r=sfa%2Freal-order%2Fmultiple',
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-Token' : csrf
             },
             body: formData
         });
