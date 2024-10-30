@@ -2,8 +2,8 @@ import {JSDOM} from "jsdom";
 import {
     getAllDKDSSaleOrders,
     getDKDSSaleOrders,
-    getDKDSSaleOrdersById,
-    refetchCookies
+    getDKDSSaleOrderById,
+    refetchCookies, getDKDSSaleOrderItemsById
 } from "./services/dkds.service.js";
 import {promises as fs} from 'fs';
 
@@ -14,8 +14,10 @@ const main = async () => {
 
     await refetchCookies();
     const orders = await getAllDKDSSaleOrders();
-    const order = await getDKDSSaleOrdersById(orders[0].salesOrder);
+    const order = await getDKDSSaleOrderById(orders[0].salesOrder);
     console.log(order);
+    const items = await getDKDSSaleOrderItemsById(order.salesOrder, order.customerCode);
+    console.log(items);
 };
 
 main().then();
