@@ -1,10 +1,15 @@
 import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { config } from 'dotenv';
+import Order from '../database/models/order.js';
+import OrderItem from '../database/models/orderItem.js';
 
+config();
 // Refetch and update TWIN API token
 export const refetchTwinToken = async () => {
   const baseUrl = process.env.TWIN_BASE_URL;
+  console.log(`${baseUrl}/login`);
 
   const response = await fetch(`${baseUrl}/login`, {
     method: 'POST',
@@ -120,9 +125,37 @@ export const createTwinOrder = async (
     );
 
     const contentType = response.headers.get('content-type');
-    return contentType && contentType.includes('application/json')
-      ? (await response.json()).data
-      : await response.text();
+    const order =
+      contentType && contentType.includes('application/json')
+        ? (await response.json()).data
+        : await response.text();
+    const createdOrder = await Order.create({
+      id: order.id,
+      status: order.status,
+      customerId: order.id_toko,
+      warehouseId: order.id_gudang,
+      customCode: order.po_manual,
+      date: order.tanggal,
+      paymentType: order.tipe_pembayaran,
+      priceType: order.tipe_harga,
+      salesmanId: order.id_salesman,
+      remarks: order.keterangan,
+    });
+    const createdOrderItems = await Promise.all(
+      order.detail.map(async (item) => {
+        return await OrderItem.create({
+          id: item.id,
+          orderId: item.id_penjualan,
+          productId: item.id_barang,
+          quantity: item.qty,
+          quantityPcs: item.qty_pcs,
+          discountPercent: item.disc_persen,
+          discountAmount: item.disc_rupiah,
+          promoId: item.id_promo,
+        });
+      })
+    );
+    return order;
   } catch (error) {
     console.error(`Error fetching data penjualan:`, error);
     return null;
