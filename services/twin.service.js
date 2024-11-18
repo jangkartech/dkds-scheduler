@@ -4,6 +4,7 @@ import path from 'path';
 import { config } from 'dotenv';
 import Order from '../database/models/order.js';
 import OrderItem from '../database/models/orderItem.js';
+import { orderItemTwinToMain, orderTwinToMain } from './mapper.service.js';
 
 config();
 // Refetch and update TWIN API token
@@ -84,8 +85,6 @@ export const getTwinOrders = async (orderIds = ['13426134']) => {
 // Create new order with items
 export const createTwinOrder = async (
   orderPayload = {
-    id: '',
-    status: '',
     id_toko: '449',
     id_gudang: '1',
     po_manual: '',
@@ -129,30 +128,10 @@ export const createTwinOrder = async (
       contentType && contentType.includes('application/json')
         ? (await response.json()).data
         : await response.text();
-    const createdOrder = await Order.create({
-      id: order.id,
-      status: order.status,
-      customerId: order.id_toko,
-      warehouseId: order.id_gudang,
-      customCode: order.po_manual,
-      date: order.tanggal,
-      paymentType: order.tipe_pembayaran,
-      priceType: order.tipe_harga,
-      salesmanId: order.id_salesman,
-      remarks: order.keterangan,
-    });
+    const createdOrder = await Order.create(orderTwinToMain(order));
     const createdOrderItems = await Promise.all(
       order.detail.map(async (item) => {
-        return await OrderItem.create({
-          id: item.id,
-          orderId: item.id_penjualan,
-          productId: item.id_barang,
-          quantity: item.qty,
-          quantityPcs: item.qty_pcs,
-          discountPercent: item.disc_persen,
-          discountAmount: item.disc_rupiah,
-          promoId: item.id_promo,
-        });
+        return await OrderItem.create(orderItemTwinToMain(item));
       })
     );
     return order;
