@@ -1,6 +1,7 @@
 import sequelize from './database/database.js';
 import Order from './database/models/order.js';
-import OrderItem from './database/models/orderItem.js'; // Import the OrderItem model
+import OrderItem from './database/models/orderItem.js';
+import Mapper from './database/models/mapper.js';
 
 async function initializeDatabase() {
   try {

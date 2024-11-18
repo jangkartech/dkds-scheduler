@@ -1,7 +1,6 @@
-// models/order.js
 import { DataTypes } from 'sequelize';
 import sequelize from '../database.js';
-import OrderItem from './orderItem.js'; // Import OrderItem to define the relationship
+import OrderItem from './orderItem.js';
 
 const Order = sequelize.define(
   'order',
