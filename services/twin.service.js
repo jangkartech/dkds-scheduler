@@ -4,7 +4,7 @@ import path from 'path';
 import { config } from 'dotenv';
 import Order from '../database/models/order.js';
 import OrderItem from '../database/models/orderItem.js';
-import { orderItemTwinToMain, orderTwinToMain } from './mapper.service.js';
+import { orderItemTwinToDB, orderTwinToDB } from './mapper.service.js';
 
 config();
 // Refetch and update TWIN API token
@@ -128,10 +128,10 @@ export const createTwinOrder = async (
       contentType && contentType.includes('application/json')
         ? (await response.json()).data
         : await response.text();
-    const createdOrder = await Order.create(orderTwinToMain(order));
+    const createdOrder = await Order.create(orderTwinToDB(order));
     const createdOrderItems = await Promise.all(
       order.detail.map(async (item) => {
-        return await OrderItem.create(orderItemTwinToMain(item));
+        return await OrderItem.create(orderItemTwinToDB(item));
       })
     );
     return order;
