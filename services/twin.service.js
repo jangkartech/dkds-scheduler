@@ -43,6 +43,8 @@ export const refetchTwinToken = async () => {
   credentials.TWIN_TOKEN = responseData.token;
   credentials.TWIN_USER = responseData.user;
 
+  console.log(responseData.token);
+
   await fs.writeFile('credential.json', JSON.stringify(credentials, null, 2));
 
   console.log('Token updated in credential.json');
@@ -83,32 +85,12 @@ export const getTwinOrders = async (orderIds = ['13426134']) => {
 };
 
 // Create new order with items
-export const createTwinOrder = async (
-  orderPayload = {
-    id_toko: '449',
-    id_gudang: '1',
-    po_manual: '',
-    tanggal: '2024-10-28',
-    tipe_pembayaran: 'cash',
-    tipe_harga: 'rbp',
-    id_salesman: '40',
-    keterangan: '',
-    items: [
-      {
-        id_barang: 8,
-        qty: '1',
-        qty_pcs: 0,
-        disc_persen: 0,
-        disc_rupiah: 60000,
-        id_promo: process.env.DKDS_PROMO_ID,
-      },
-    ],
-  }
-) => {
+export const createTwinOrder = async (orderPayload) => {
   const baseUrl = process.env.TWIN_BASE_URL;
   const credentialsPath = path.resolve('./credential.json');
   const credentials = JSON.parse(await fs.readFile(credentialsPath, 'utf-8'));
   const token = credentials.TWIN_TOKEN;
+
   try {
     // Submit order data
     const response = await fetch(
@@ -123,20 +105,41 @@ export const createTwinOrder = async (
       }
     );
 
-    const contentType = response.headers.get('content-type');
-    const order =
-      contentType && contentType.includes('application/json')
-        ? (await response.json()).data
-        : await response.text();
-    const createdOrder = await Order.create(orderTwinToDB(order));
-    const createdOrderItems = await Promise.all(
-      order.detail.map(async (item) => {
-        return await OrderItem.create(orderItemTwinToDB(item));
-      })
-    );
-    return order;
+    // Handle non-201 status codes
+    if (response.status === 422) {
+      const errorDetail = await response.json();
+      const validationErrors = errorDetail.errors || errorDetail; // Adjust to match Laravel's error format
+      console.error('Validation error:', validationErrors);
+      return null;
+    }
+
+    if (!response.ok) {
+      console.error(`Unexpected response status: ${response.status}`);
+      return null;
+    }
+
+    // Proceed only if status is 201
+    if (response.status === 201) {
+      const contentType = response.headers.get('content-type');
+      const order =
+        contentType && contentType.includes('application/json')
+          ? (await response.json()).data
+          : await response.text();
+
+      console.log(order);
+
+      // Save order and order items to DB
+      const createdOrder = await Order.create(orderTwinToDB(order));
+      await Promise.all(
+        order.detail.map(async (item) => {
+          return await OrderItem.create(orderItemTwinToDB(item));
+        })
+      );
+
+      return order;
+    }
   } catch (error) {
-    console.error(`Error fetching data penjualan:`, error);
+    console.error('Error fetching data penjualan:', error);
     return null;
   }
 };

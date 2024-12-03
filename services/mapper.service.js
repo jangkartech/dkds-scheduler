@@ -32,26 +32,13 @@ export const orderDKDSToTwin = async (
     totalInvoice: 0,
   }
 ) => {
-  const id_toko = await findMapperByEntity(
-    order.customerCode,
-    EntityTypes.CUSTOMER
-  );
-  const id_gudang = await findMapperByEntity(
-    order.warehouseCode,
-    EntityTypes.WAREHOUSE
-  );
-  const id_salesman = await findMapperByEntity(
-    order.salesmanCode,
-    EntityTypes.SALESMAN
-  );
+  const paymentType = order.paymentType === 'KREDIT' ? 'credit' : 'cash';
   return {
-    id_toko,
-    id_gudang,
+    no_acc: order.customerCode,
     po_manual: order.noSalesOrder,
     tanggal: order.oderDate,
-    tipe_pembayaran: order.paymentType,
-    tipe_harga: order.priceType,
-    id_salesman: id_salesman,
+    tipe_pembayaran: paymentType,
+    kode_salesman: order.salesmanCode,
     keterangan: order.description,
   };
 };
@@ -69,17 +56,14 @@ export const orderItemDKDSToTwin = async (
     discountAmount: 0,
   }
 ) => {
-  const id_barang = await findMapperByEntity(
-    orderItem.productCode,
-    EntityTypes.PRODUCT
-  );
   return {
-    id_barang,
+    kode_barang: orderItem.productCode,
     qty: orderItem.productQty,
     qty_pcs: 0,
     disc_persen: 0,
     disc_rupiah: orderItem.discountAmount,
     id_promo: process.env.DKDS_PROMO_ID,
+    kode_promo: 'testing',
   };
 };
 
