@@ -4,6 +4,7 @@ import {
   orderItemDKDSToTwin,
 } from './services/mapper.service.js';
 import { createTwinOrder, refetchTwinToken } from './services/twin.service.js';
+import { sendAlertMessage } from './services/telegram.bot.service.js';
 
 const main = async () => {
   // const twinUser = await refetchTwinToken();
@@ -40,9 +41,27 @@ const main = async () => {
     orderItems.map((item) => orderItemDKDSToTwin(item))
   );
   console.dir(orderPayload, { depth: null });
-  const twinUser = await refetchTwinToken();
-  const createdOrder = await createTwinOrder(orderPayload);
-  console.log(createdOrder);
+
+  try {
+    await refetchTwinToken();
+    const createdOrder = await createTwinOrder(orderPayload);
+    console.log(createdOrder);
+  } catch (error) {
+    console.error(error);
+    await sendAlertMessage(error.message || error);
+  }
 };
 
+process.on('unhandledRejection', async (reason, promise) => {
+  const errorMessage = `Unhandled promise rejection: ${reason}`;
+  await sendAlertMessage(errorMessage);
+  console.error(errorMessage);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', async (error) => {
+  const errorMessage = `Uncaught exception: ${error.message || error}`;
+  await sendAlertMessage(errorMessage);
+  console.error(errorMessage);
+});
 main().then();

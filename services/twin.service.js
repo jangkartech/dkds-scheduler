@@ -1,145 +1,151 @@
+import Order from '../database/models/order.js';
+import OrderItem from '../database/models/orderItem.js';
 import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { config } from 'dotenv';
-import Order from '../database/models/order.js';
-import OrderItem from '../database/models/orderItem.js';
 import { orderItemTwinToDB, orderTwinToDB } from './mapper.service.js';
 
 config();
-// Refetch and update TWIN API token
+
 export const refetchTwinToken = async () => {
   const baseUrl = process.env.TWIN_BASE_URL;
-  console.log(`${baseUrl}/login`);
+  const endpoint = `${baseUrl}/login`;
 
-  const response = await fetch(`${baseUrl}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: process.env.TWIN_USERNAME,
-      password: process.env.TWIN_PASSWORD,
-    }),
-  });
-
-  let responseData = {};
-  const contentType = response.headers.get('content-type');
-
-  // Ensure response is parsed correctly
-  if (contentType && contentType.includes('application/json')) {
-    responseData = await response.json();
-  } else {
-    responseData = JSON.parse(await response.text());
-  }
-
-  // Load or initialize credential data
-  let credentials = {};
   try {
-    const fileContent = await fs.readFile('credential.json', 'utf-8');
-    credentials = JSON.parse(fileContent);
-  } catch {
-    console.log('Creating new credential.json file.');
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: process.env.TWIN_USERNAME,
+        password: process.env.TWIN_PASSWORD,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw `Failed to fetch TWIN token from API \n${endpoint} : \nHTTP status ${response.status}:\n${errorText}`;
+    }
+
+    const responseData = await response.json();
+    const credentials = {
+      TWIN_TOKEN: responseData.token,
+      TWIN_USER: responseData.user,
+    };
+
+    await fs.writeFile('credential.json', JSON.stringify(credentials, null, 2));
+    return responseData;
+  } catch (error) {
+    throw `Error in twin service refetchTwinToken :\n${error.message || error}`;
   }
-
-  credentials.TWIN_TOKEN = responseData.token;
-  credentials.TWIN_USER = responseData.user;
-
-  console.log(responseData.token);
-
-  await fs.writeFile('credential.json', JSON.stringify(credentials, null, 2));
-
-  console.log('Token updated in credential.json');
-  return responseData;
 };
 
-// Get order and its items
 export const getTwinOrders = async (orderIds = ['13426134']) => {
+  const baseUrl = process.env.TWIN_BASE_URL;
+  const endpoint = `${baseUrl}/external_app/dk/penjualan`;
+  const credentialsPath = path.resolve('./credential.json');
+
   try {
-    const baseUrl = process.env.TWIN_BASE_URL;
-    const credentialsPath = path.resolve('./credential.json');
     const credentials = JSON.parse(await fs.readFile(credentialsPath, 'utf-8'));
     const token = credentials.TWIN_TOKEN;
-
     const queryString = orderIds
       .map((id) => `ids[]=${encodeURIComponent(id)}`)
       .join('&');
-    console.log(`${baseUrl}/external_app/dk/penjualan?${queryString}`);
-    const response = await fetch(
-      `${baseUrl}/external_app/dk/penjualan?${queryString}`,
-      {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
 
-    const contentType = response.headers.get('content-type');
-    return contentType && contentType.includes('application/json')
-      ? (await response.json()).data
-      : await response.text();
+    const response = await fetch(`${endpoint}?${queryString}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw `Failed to fetch orders from API \n${endpoint} : \nHTTP status ${response.status}:\n${errorText}`;
+    }
+    return await response.json();
   } catch (error) {
-    console.error(`Error fetching data penjualan:`, error);
-    return null;
+    throw `Error in twin service getTwinOrders : \n${error.message || error}`;
   }
 };
 
-// Create new order with items
 export const createTwinOrder = async (orderPayload) => {
   const baseUrl = process.env.TWIN_BASE_URL;
+  const endpoint = `${baseUrl}/external_app/dk/penjualan_with_detail`;
   const credentialsPath = path.resolve('./credential.json');
-  const credentials = JSON.parse(await fs.readFile(credentialsPath, 'utf-8'));
-  const token = credentials.TWIN_TOKEN;
 
   try {
-    // Submit order data
-    const response = await fetch(
-      `${baseUrl}/external_app/dk/penjualan_with_detail`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(orderPayload),
-      }
-    );
+    const credentials = JSON.parse(await fs.readFile(credentialsPath, 'utf-8'));
+    const token = credentials.TWIN_TOKEN;
+    // Submit order to the API
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(orderPayload),
+    });
 
-    // Handle non-201 status codes
+    // Handle HTTP errors
     if (response.status === 422) {
-      const errorDetail = await response.json();
-      const validationErrors = errorDetail.errors || errorDetail; // Adjust to match Laravel's error format
-      console.error('Validation error:', validationErrors);
-      return null;
+      const validationErrors = await response.json();
+      const errorMessages = [];
+      // Iterate over validation errors and build detailed messages
+      Object.keys(validationErrors.errors || validationErrors).forEach(
+        (field) => {
+          const isItems = field.startsWith('items');
+          if (isItems) {
+            const index = field.split('.')[1];
+            const specificField = field.split('.')[2];
+            console.log(index, specificField);
+            errorMessages.push(
+              specificField +
+                ' items ' +
+                orderPayload.items[index][specificField] +
+                ' : ' +
+                validationErrors[field].join(', ')
+            );
+          } else {
+            errorMessages.push(
+              field +
+                ' ' +
+                orderPayload[field] +
+                ' : ' +
+                validationErrors[field].join(', ')
+            );
+          }
+        }
+      );
+
+      console.log(errorMessages);
+      // Throw a detailed error message
+      throw `Validation error when creating order via API \n${endpoint} \n${errorMessages.join('\n')}`;
     }
 
     if (!response.ok) {
-      console.error(`Unexpected response status: ${response.status}`);
-      return null;
+      const errorText = await response.text();
+      throw `Failed to create order via API \n${endpoint} : \nHTTP status ${response.status}:\n${errorText}`;
     }
 
-    // Proceed only if status is 201
-    if (response.status === 201) {
-      const contentType = response.headers.get('content-type');
-      const order =
-        contentType && contentType.includes('application/json')
-          ? (await response.json()).data
-          : await response.text();
+    // Parse API response
+    const order = await response.json();
 
-      console.log(order);
-
-      // Save order and order items to DB
-      const createdOrder = await Order.create(orderTwinToDB(order));
+    try {
+      // Save order and items to the database
+      const createdOrder = await Order.create(orderTwinToDB(order.data));
       await Promise.all(
-        order.detail.map(async (item) => {
-          return await OrderItem.create(orderItemTwinToDB(item));
-        })
+        order.data.detail.map((item) =>
+          OrderItem.create(orderItemTwinToDB(item))
+        )
       );
 
-      return order;
+      return createdOrder;
+    } catch (dbError) {
+      throw `Database error while saving order and items after hitting API \n${endpoint} \n${dbError.message}`;
     }
   } catch (error) {
-    console.error('Error fetching data penjualan:', error);
-    return null;
+    throw `Error in twin service createTwinOrder : \n${error}`;
   }
 };
