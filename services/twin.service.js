@@ -5,6 +5,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { config } from 'dotenv';
 import { orderItemTwinToDB, orderTwinToDB } from './mapper.service.js';
+import { getAllOrderByStatuses, updateOrderById } from './order.service.js';
 
 config();
 
@@ -149,3 +150,23 @@ export const createTwinOrder = async (orderPayload) => {
     throw `Error in twin service createTwinOrder : \n${error}`;
   }
 };
+
+export const updateWhenOrderStatusNotWaiting = async () => {
+  try {
+    const ordersData = await getAllOrderByStatuses(['waiting']) || [];
+    const ids = ordersData.map((item) => item.id);
+
+    const ordersTwin = await getTwinOrders(ids);
+    
+    for (let orderTwin of ordersTwin) {
+      if (orderTwin.status !== 'waiting') {
+        const updated = {
+          status: orderTwin.status
+        }
+        await updateOrderById(orderTwin.id, updated);
+      }
+    }
+  } catch (error) {
+    throw error;
+  }
+}
