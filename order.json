@@ -1,0 +1,71 @@
+[
+    {
+        "noRealOrder": "202411209034",
+        "noSalesOrder": "202411200034",
+        "salesmanCode": "10001",
+        "salesmanName": "ANGGA ADNYANA",
+        "oderType": "TAKING ORDER",
+        "oderDate": "20-11-2024",
+        "createdBy": "RESTU",
+        "noPo": "8",
+        "poDate": "20-11-2024",
+        "customerCode": "P-008.54410353",
+        "customerName": "SEDANA",
+        "customerAddress": "JL. RAYA ABIANSEMAL",
+        "paymentType": "KREDIT",
+        "dueDate": "04-12-2024",
+        "status": "Post",
+        "warehouseCode": "GD544101",
+        "warehouseName": "GUDANG UTAMADISTRIBUTOR",
+        "description": "-",
+        "printCount": 1,
+        "taxBase": 692463,
+        "discountValue": 0,
+        "discountPercentage": 6996,
+        "amount": 699459,
+        "taxValue": 76172,
+        "points": 0,
+        "adjustmentPrice": 0,
+        "totalInvoice": 768635,
+        "items": [
+            {
+                "no": 4,
+                "productCode": "1310294",
+                "productName": "TIC TAC RL 6X1X10X14G",
+                "color": "biru bergaris",
+                "productQty": [
+                    {
+                        "qty": 2,
+                        "uom": "BAL"
+                    },
+                    {
+                        "qty": 0,
+                        "uom": "PAK"
+                    },
+                    {
+                        "qty": 0,
+                        "uom": "RCG"
+                    },
+                    {
+                        "qty": 0,
+                        "uom": "PCS"
+                    },
+                    {
+                        "qty": 0,
+                        "uom": ""
+                    }
+                ],
+                "productPrices": [
+                44865,
+                7477,
+                7477,
+                748,
+                0
+                ],
+                "amount": 89730,
+                "adjustmentPrice": 0,
+                "discountAmount": 897
+            }
+        ]
+    }
+]
