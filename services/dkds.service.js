@@ -142,7 +142,7 @@ export const getAllDKDSSaleOrders = async () => {
 
     scrapedData = Array.from(rows).map((row) => {
       const cells = row.querySelectorAll('td');
-      if (cells[0].textContent != 'No results found.' && cells.length != 1) {
+      if (cells[0].textContent == 'No results found.' && cells.length == 1) {
         return null;
       }
       const salesman = cells[4].textContent.trim().split(' - ');
@@ -732,7 +732,7 @@ export const getAllDKDSPFIConfirmOrders = async () => {
 
     scrapedData = Array.from(rows).map((row) => {
       const cells = row.querySelectorAll('td');
-      if (cells[0].textContent != 'No results found.' && cells.length != 1) {
+      if (cells[0].textContent == 'No results found.' && cells.length == 1) {
         return null;
       }
       const salesman = cells[3].textContent.trim().split(' - ');
