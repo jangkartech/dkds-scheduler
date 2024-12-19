@@ -135,10 +135,10 @@ export const createTwinOrder = async (orderPayload) => {
 
     try {
       // Save order and items to the database
-      const createdOrder = await Order.create(orderTwinToDB(order.data));
+      const createdOrder = await Order.create(await orderTwinToDB(order.data));
       await Promise.all(
-        order.data.detail.map((item) =>
-          OrderItem.create(orderItemTwinToDB(item))
+        order.data.detail.map(async (item) =>
+          OrderItem.create(await orderItemTwinToDB(item))
         )
       );
 
@@ -150,23 +150,3 @@ export const createTwinOrder = async (orderPayload) => {
     throw `Error in twin service createTwinOrder : \n${error}`;
   }
 };
-
-export const updateWhenOrderStatusNotWaiting = async () => {
-  try {
-    const ordersData = await getAllOrderByStatuses(['waiting']) || [];
-    const ids = ordersData.map((item) => item.id);
-
-    const ordersTwin = await getTwinOrders(ids);
-    
-    for (let orderTwin of ordersTwin) {
-      if (orderTwin.status !== 'waiting') {
-        const updated = {
-          status: orderTwin.status
-        }
-        await updateOrderById(orderTwin.id, updated);
-      }
-    }
-  } catch (error) {
-    throw error;
-  }
-}

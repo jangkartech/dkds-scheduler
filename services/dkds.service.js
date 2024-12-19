@@ -127,9 +127,24 @@ export const getAllDKDSSaleOrders = async () => {
     const orders = await getDKDSSaleOrders(page);
     const { document } = new JSDOM(orders).window;
     const rows = document.querySelectorAll('.table tbody tr');
+    // Initialize pagination object
+    const pagination = {
+      currentPage: null,
+      totalPage: 0,
+      total: 0,
+      pages: [],
+    };
+    let scrapedData = [];
 
-    const scrapedData = Array.from(rows).map((row) => {
+    if (Array.from(rows).length == 0) {
+      return { scrapedData, pagination };
+    }
+
+    scrapedData = Array.from(rows).map((row) => {
       const cells = row.querySelectorAll('td');
+      if (cells[0].textContent != 'No results found.' && cells.length != 1) {
+        return null;
+      }
       const salesman = cells[4].textContent.trim().split(' - ');
       const customer = cells[5].textContent.trim().split(' - ');
       const customerNameAndAddress = customer[1].split('Add: ');
@@ -152,13 +167,9 @@ export const getAllDKDSSaleOrders = async () => {
       };
     });
 
-    // Initialize pagination object
-    const pagination = {
-      currentPage: null,
-      totalPage: 0,
-      total: 0,
-      pages: [],
-    };
+    if (scrapedData.length == 1 && scrapedData[0] == null) {
+      scrapedData = [];
+    }
 
     // Find all page links
     const pageLinks = [...document.querySelectorAll('.pagination li a')].filter(
@@ -648,4 +659,138 @@ export const updateDKDSSalesOrderStatus = async (status) => {
   } catch (error) {
     throw error;
   }
+}
+
+export const getDKDSPFIConfirmOrders = async (page = 1) => {
+  try {
+    // Read and parse the credentials JSON file
+    const credentialsPath = path.resolve('./credential.json');
+    const credentialsData = await fs.readFile(credentialsPath, 'utf-8');
+    const credentials = JSON.parse(credentialsData);
+
+    const csrf = credentials.DKDS_CSRF;
+    const csrfCookie = credentials.COOKIES[0].value;
+    const phpsessid = credentials.COOKIES[1].value;
+    const cookie = 'PHPSESSID=' + phpsessid + '; _csrf=' + csrfCookie;
+    const baseUrl = process.env.DKDS_BASE_URL;
+
+    // Perform the POST request
+    const response = await fetch(
+      baseUrl +
+        '/dkds/web/index.php?r=transaksi%2Fpfi-confirm%2Findex&page=' +
+        page,
+      {
+        method: 'GET',
+        headers: {
+          Cookie: cookie,
+          Accept: 'text/plain, */*; q=0.01',
+          'Accept-Encoding': 'gzip, deflate',
+          'Accept-Language': 'en-US,en;q=0.9',
+          Connection: 'keep-alive',
+          'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+          Host: '192.168.1.253',
+          Origin: baseUrl,
+          Referer:
+            baseUrl + '/dkds/web/index.php?r=sfa%2Freal-order%2Fmultiple',
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      }
+    );
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else {
+      return await response.text();
+    }
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+  }
+}
+
+export const getAllDKDSPFIConfirmOrders = async () => {
+  let allData = [];
+  let currentPage = 1;
+
+  const fetchAndScrapeData = async (page) => {
+    const orders = await getDKDSPFIConfirmOrders(page);
+    const { document } = new JSDOM(orders).window;
+    const rows = document.querySelectorAll('.table tbody tr');
+    // Initialize pagination object
+    const pagination = {
+      currentPage: null,
+      totalPage: 0,
+      total: 0,
+      pages: [],
+    };
+    let scrapedData = [];
+
+    if (Array.from(rows).length == 0) {
+      return { scrapedData, pagination };
+    }
+
+    scrapedData = Array.from(rows).map((row) => {
+      const cells = row.querySelectorAll('td');
+      if (cells[0].textContent != 'No results found.' && cells.length != 1) {
+        return null;
+      }
+      const salesman = cells[3].textContent.trim().split(' - ');
+      const customer = cells[4].textContent.trim().split(' - ');
+      const customerNameAndAddress = customer[1].split('Add: ');
+      return {
+        rowNumber: cells[0].textContent.trim(),
+        noSalesOrder: cells[1].textContent.trim(),
+        tanggalPost: cells[2].textContent.trim(),
+        salesmanCode: salesman[0],
+        salesmanName: salesman[1],
+        customerCode: customer[0],
+        customerName: customerNameAndAddress[0].trim(),
+        customerAddress: customerNameAndAddress[1].trim() || '',
+        totalInvoice:
+          parseFloat(cells[5].textContent.trim().replace(/[,.-]/g, '')) || 0, // Convert totalInvoice to float
+        noSO: cells[6].textContent.trim(),
+        noInvoice: cells[7].textContent.trim(),
+        status: cells[9].textContent.trim(),
+      };
+    });
+
+    if (scrapedData.length == 1 && scrapedData[0] == null) {
+      scrapedData = [];
+    }
+
+    // Find all page links
+    const pageLinks = [...document.querySelectorAll('.pagination li a')].filter(
+      (link) => !['First', 'Last', '«', '»'].includes(link.textContent)
+    );
+
+    pagination.totalPage = pageLinks.length;
+
+    const activePage = document.querySelector('.pagination li.active a');
+    if (activePage) {
+      pagination.currentPage = parseInt(activePage.textContent, 10);
+    }
+
+    pagination.pages = pageLinks.map((link) => parseInt(link.textContent, 10));
+    pagination.total = scrapedData.length;
+
+    return { scrapedData, pagination };
+  };
+
+  // Fetch and scrape data in a loop
+  let hasMorePages = true;
+  while (hasMorePages) {
+    const { scrapedData, pagination } = await fetchAndScrapeData(currentPage);
+    console.log(pagination);
+
+    allData = allData.concat(scrapedData);
+
+    // Check if there are more pages to process
+    if (pagination.currentPage < pagination.totalPage) {
+      currentPage++; // Move to the next page
+    } else {
+      hasMorePages = false; // No more pages
+    }
+  }
+  return allData;
 }

@@ -49,16 +49,24 @@ export const orderItemDKDSToTwin = async (
     productCode: '',
     productName: '',
     color: '',
-    productQty: 0,
+    productQty: [],
     productPrices: 0,
     amount: 0,
     adjustmentPrice: 0,
     discountAmount: 0,
   }
 ) => {
+  const qtyList = orderItem.productQty.map((item) => {
+    if (String(item.uom).toLowerCase != 'krt') {
+      item.uom = 'PCS';
+    }
+
+    return item;
+  })
+
   return {
     kode_barang: orderItem.productCode,
-    qty: orderItem.productQty,
+    qty: qtyList,
     qty_pcs: 0,
     disc_persen: 0,
     disc_rupiah: orderItem.discountAmount,
